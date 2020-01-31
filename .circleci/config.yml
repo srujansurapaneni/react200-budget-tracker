@@ -1,20 +1,53 @@
 version: 2.1
 jobs:
-  build:
+  first-job:
     docker:
-      - image: circleci/node:10-browsers
+      - image: alpine:3.7
+    steps:
+      - run:
+          name: Step-1
+          command: |
+            echo 'started step-1'
+  second-job:
+    docker:
+      - image: alpine:3.7
     steps:
       - checkout
       - run:
-          name: The First Step
-          command: |
-            echo 'Hello World!'
-            echo 'This is the delivery pipeline'
-      - run:
-          name: Code arrived
+          name: Step-2 code arrived
           command: |
             ls -l
+  third-job:
+    docker:
+      - image: circleci/node:10-browsers
+    steps:
       - run:
-          name: Its own container
           command: |
             node -v
+  Now-Complete:
+    docker:
+      - image: alpine:3.7
+    steps:
+      - run:
+          name: Approval Complete
+          command: |
+            echo 'Do work once the approval has completed'
+workflows:
+  version: 2
+  first-workflow:
+    jobs:
+      - first-job
+      - second-job:
+          requires:
+            - first-job
+      - third-job:
+          requires:
+            - second-job
+      - Hold-For-Approval:
+          type: approval
+          requires:
+            - second-job
+            - third-job
+      - Now-Complete:
+          requires:
+            - Hold-For-Approval
