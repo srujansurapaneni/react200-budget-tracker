@@ -1,53 +1,32 @@
-version: 2.1
+version: 2
 jobs:
-  first-job:
+  build:
     docker:
       - image: alpine:3.7
     steps:
       - run:
-          name: Step-1
+          name: The First Step
           command: |
-            echo 'started step-1'
-  second-job:
+            echo 'Hello World!'
+            echo 'This is the delivery pipeline'
+  deploy:
     docker:
-      - image: alpine:3.7
+      - image: buildpack-deps:trusty
     steps:
       - checkout
       - run:
-          name: Step-2 code arrived
+          name: Deploy Master to Heroku
           command: |
-            ls -l
-  third-job:
-    docker:
-      - image: circleci/node:10-browsers
-    steps:
-      - run:
-          command: |
-            node -v
-  Now-Complete:
-    docker:
-      - image: alpine:3.7
-    steps:
-      - run:
-          name: Approval Complete
-          command: |
-            echo 'Do work once the approval has completed'
+            git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git master
+
 workflows:
   version: 2
-  first-workflow:
+  build-deploy:
     jobs:
-      - first-job
-      - second-job:
+      - build
+      - deploy:
           requires:
-            - first-job
-      - third-job:
-          requires:
-            - second-job
-      - Hold-For-Approval:
-          type: approval
-          requires:
-            - second-job
-            - third-job
-      - Now-Complete:
-          requires:
-            - Hold-For-Approval
+            - build
+          filters:
+            branches:
+              only: master
