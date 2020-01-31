@@ -13,4 +13,4 @@ jobs:
       - run:
           name: The second Step
           command: |
-            echo 'Hi There'
+            ls -l
